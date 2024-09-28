@@ -5,16 +5,20 @@
  */
 import { StatusCodes } from 'http-status-codes'
 
-const createNew = (req, res) => {
+const createNew = (req, res, next) => {
   try {
     console.log('req.body: ', req.body)
+
+    //navigate to service
+
     res
       .status(StatusCodes.CREATED)
       .json({ message: 'POST from controller: API create boards' })
   } catch (error) {
-    res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ errors: error.message })
+    next(error)
+    // res
+    //   .status(StatusCodes.INTERNAL_SERVER_ERROR)
+    //   .json({ errors: error.message })
   }
 }
 
