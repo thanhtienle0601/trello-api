@@ -5,6 +5,7 @@
  */
 import { StatusCodes } from 'http-status-codes'
 import Joi, { string } from 'joi'
+import ApiError from '~/utils/ApiError'
 
 const createNew = async (req, res, next) => {
   const conditionTrue = Joi.object({
@@ -37,9 +38,12 @@ const createNew = async (req, res, next) => {
     await conditionTrue.validateAsync(req.body, { abortEarly: false })
     next()
   } catch (error) {
-    res
-      .status(StatusCodes.UNPROCESSABLE_ENTITY)
-      .json({ errors: new Error(error).message })
+    // res
+    //   .status(StatusCodes.UNPROCESSABLE_ENTITY)
+    //   .json({ errors: new Error(error).message })
+    next(
+      new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, new Error(error).message)
+    )
   }
 }
 
