@@ -4,16 +4,15 @@
  * "A bit of fragrance clings to the hand that gives flowers!"
  */
 import { StatusCodes } from 'http-status-codes'
+import { boardService } from '~/services/boardService'
 
-const createNew = (req, res, next) => {
+const createNew = async (req, res, next) => {
   try {
-    console.log('req.body: ', req.body)
+    // console.log('req.body: ', req.body)
 
     //navigate to service
-
-    res
-      .status(StatusCodes.CREATED)
-      .json({ message: 'POST from controller: API create boards' })
+    const createBoard = await boardService.createNew(req.body)
+    res.status(StatusCodes.CREATED).json(createBoard)
   } catch (error) {
     next(error)
     // res
