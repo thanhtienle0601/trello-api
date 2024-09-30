@@ -49,9 +49,22 @@ const findOneById = async (id) => {
   }
 }
 
+const getDetails = async (id) => {
+  try {
+    return await GET_DB()
+      .collection(BOARD_COLLECTION_NAME)
+      .findOne({
+        _id: ObjectId.createFromHexString(id)
+      })
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const boardModel = {
   BOARD_COLLECTION_NAME,
   BOARD__COLLECTION_SCHEMA,
   createOne,
-  findOneById
+  findOneById,
+  getDetails
 }
