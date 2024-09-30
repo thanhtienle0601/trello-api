@@ -12,9 +12,7 @@ const createNew = async (reqBody) => {
     const data = { ...reqBody, slug: slugify(reqBody.title) }
 
     return await boardModel.findOneById(
-      (
-        await boardModel.createOne(data)
-      ).insertedId
+      (await boardModel.createOne(data)).insertedId.toString()
     )
   } catch (error) {
     throw error
