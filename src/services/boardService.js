@@ -2,6 +2,7 @@ import { slugify } from '~/utils/formatters'
 import { boardModel } from '~/models/boardModel'
 import ApiError from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
+import { cloneDeep } from 'lodash'
 
 /**
  * Updated by trungquandev.com's author on August 17 2023
@@ -28,7 +29,15 @@ const getDetails = async (boardId) => {
     if (!board) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Board not found !')
     }
-    return board
+
+    const resBoard = cloneDeep(board)
+    resBoard.columns.forEach((col) => {
+      col.cards = resBoard.cards.filter((card) => card.columnId.equals(col._id))
+    })
+
+    delete resBoard.cards
+
+    return resBoard
   } catch (error) {
     throw error
   }
