@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongodb'
+import { ObjectId, ReturnDocument } from 'mongodb'
 import { GET_DB } from '~/config/mongodb'
 import { BOARD_TYPES } from '~/utils/constants'
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
@@ -88,10 +88,35 @@ const getDetails = async (id) => {
   }
 }
 
+const pushColumnOrderIds = async (column) => {
+  try {
+    await GET_DB()
+      .collection(BOARD_COLLECTION_NAME)
+      .findOneAndUpdate(
+        {
+          _id: ObjectId.isValid(column.boardId)
+            ? column.boardId
+            : ObjectId.createFromHexString(column.boardId)
+        },
+        {
+          $push: {
+            columnOrderIds: ObjectId.isValid(column._id)
+              ? column._id
+              : ObjectId.createFromHexString(column._id)
+          }
+        },
+        { ReturnDocument: 'after' }
+      )
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const boardModel = {
   BOARD_COLLECTION_NAME,
   BOARD__COLLECTION_SCHEMA,
   createOne,
   findOneById,
-  getDetails
+  getDetails,
+  pushColumnOrderIds
 }
