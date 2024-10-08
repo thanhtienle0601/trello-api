@@ -5,6 +5,8 @@
  */
 
 import Joi from 'joi'
+import { ObjectId } from 'mongodb'
+import { GET_DB } from '~/config/mongodb'
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
 
 // Define Collection (name & schema)
@@ -26,7 +28,67 @@ const COLUMN_COLLECTION_SCHEMA = Joi.object({
   _destroy: Joi.boolean().default(false)
 })
 
+const validateData = async (data) => {
+  return await COLUMN_COLLECTION_SCHEMA.validateAsync(data, {
+    abortEarly: false
+  })
+}
+
+const createOne = async (data) => {
+  try {
+    const validData = await validateData(data)
+    const convertedData = {
+      ...validData,
+      boardId: ObjectId.createFromHexString(validData.boardId)
+    }
+    return await GET_DB()
+      .collection(COLUMN_COLLECTION_NAME)
+      .insertOne(convertedData)
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+const findOneById = async (id) => {
+  try {
+    return await GET_DB()
+      .collection(COLUMN_COLLECTION_NAME)
+      .findOne({
+        _id: ObjectId.createFromHexString(id)
+      })
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+const pushCardOrderIds = async (card) => {
+  try {
+    await GET_DB()
+      .collection(COLUMN_COLLECTION_NAME)
+      .findOneAndUpdate(
+        {
+          _id: ObjectId.isValid(card.columnId)
+            ? card.columnId
+            : ObjectId.createFromHexString(card.columnId)
+        },
+        {
+          $push: {
+            cardOrderIds: ObjectId.isValid(card._id)
+              ? card._id
+              : ObjectId.createFromHexString(card._id)
+          }
+        },
+        { ReturnDocument: 'after' }
+      )
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const columnModel = {
   COLUMN_COLLECTION_NAME,
-  COLUMN_COLLECTION_SCHEMA
+  COLUMN_COLLECTION_SCHEMA,
+  createOne,
+  findOneById,
+  pushCardOrderIds
 }
