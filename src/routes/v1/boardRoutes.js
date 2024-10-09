@@ -15,5 +15,5 @@ Router.route('/')
     res.status(StatusCodes.OK).json({ message: 'GET: API get list boards' })
   })
   .post(boardValidation.createNew, boardController.createNew)
-Router.route('/:id').get(boardController.getDetails).put()
+Router.route('/:id').get(boardController.getDetails).put(boardController.update)
 export const boardRoutes = Router
