@@ -49,8 +49,22 @@ const update = async (req, res, next) => {
   }
 }
 
+const moveCardDifferenceColumns = async (req, res, next) => {
+  try {
+    //navigate to service
+    const result = await boardService.moveCardDifferenceColumns(req.body)
+    res.status(StatusCodes.OK).json(result)
+  } catch (error) {
+    next(error)
+    // res
+    //   .status(StatusCodes.INTERNAL_SERVER_ERROR)
+    //   .json({ errors: error.message })
+  }
+}
+
 export const boardController = {
   createNew,
   getDetails,
-  update
+  update,
+  moveCardDifferenceColumns
 }

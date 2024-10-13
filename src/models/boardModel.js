@@ -121,7 +121,11 @@ const update = async (boardId, updateData) => {
         delete updateData[field]
       }
     })
-
+    if (updateData.columnOrderIds) {
+      updateData.columnOrderIds = updateData.columnOrderIds.map((_id) =>
+        ObjectId.createFromHexString(_id)
+      )
+    }
     const result = await GET_DB()
       .collection(BOARD_COLLECTION_NAME)
       .findOneAndUpdate(
