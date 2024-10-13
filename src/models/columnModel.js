@@ -94,7 +94,12 @@ const update = async (columnId, updateData) => {
         delete updateData[field]
       }
     })
-    console.log(columnId, updateData)
+    console.log(updateData)
+    if (updateData.cardOrderIds) {
+      updateData.cardOrderIds = updateData.cardOrderIds.map((_id) =>
+        ObjectId.createFromHexString(_id)
+      )
+    }
     const result = await GET_DB()
       .collection(COLUMN_COLLECTION_NAME)
       .findOneAndUpdate(

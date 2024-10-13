@@ -3,6 +3,8 @@ import { boardModel } from '~/models/boardModel'
 import ApiError from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
 import { cloneDeep } from 'lodash'
+import { columnModel } from '~/models/columnModel'
+import { cardModel } from '~/models/cardModel'
 
 /**
  * Updated by trungquandev.com's author on August 17 2023
@@ -57,8 +59,34 @@ const update = async (boardId, reqBody) => {
   }
 }
 
+const moveCardDifferenceColumns = async (reqBody) => {
+  // eslint-disable-next-line no-useless-catch
+  try {
+    //B1 Update oldColumnCardOrderIds
+    await columnModel.update(reqBody.oldColumnId, {
+      cardOrderIds: reqBody.oldColumnCardOrderIds,
+      updatedAt: Date.now()
+    })
+    //B2 Update newColumnCardOrderIds
+    await columnModel.update(reqBody.newColumnId, {
+      cardOrderIds: reqBody.newColumnCardOrderIds,
+      updatedAt: Date.now()
+    })
+    //B3 update columnId of moved card
+    await cardModel.update(reqBody.currentCardId, {
+      columnId: reqBody.newColumnId,
+      updatedAt: Date.now()
+    })
+
+    return { status: 'success' }
+  } catch (error) {
+    throw error
+  }
+}
+
 export const boardService = {
   createNew,
   getDetails,
-  update
+  update,
+  moveCardDifferenceColumns
 }
