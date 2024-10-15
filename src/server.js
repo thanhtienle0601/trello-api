@@ -27,10 +27,10 @@ const START_SERVER = () => {
   app.use(errorHandlingMiddleware)
 
   if (env.BUILD_MODE === 'prod') {
-    app.listen(env.PORT, () => {
+    app.listen(process.env.PORT, () => {
       // eslint-disable-next-line no-console
       console.log(
-        `3. Hi ${env.AUTHOR}. Server running is successfully at PORT: ${env.PORT}`
+        `3. Hi ${env.AUTHOR}. Server running is successfully at PORT: ${process.env.PORT}`
       )
     })
   } else {
