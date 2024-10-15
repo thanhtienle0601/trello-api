@@ -26,7 +26,7 @@ const START_SERVER = () => {
   //Middleware error
   app.use(errorHandlingMiddleware)
 
-  if (env.BUILD_MODE === 'production') {
+  if (env.BUILD_MODE === 'prod') {
     app.listen(env.PORT, () => {
       // eslint-disable-next-line no-console
       console.log(
