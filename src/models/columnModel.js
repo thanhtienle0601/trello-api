@@ -118,11 +118,25 @@ const update = async (columnId, updateData) => {
   }
 }
 
+const deleteOneById = async (id) => {
+  try {
+    const result = await GET_DB()
+      .collection(COLUMN_COLLECTION_NAME)
+      .deleteOne({ _id: ObjectId.createFromHexString(id) })
+
+    console.log('🚀 ~ deleteOneById ~ result:', result)
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const columnModel = {
   COLUMN_COLLECTION_NAME,
   COLUMN_COLLECTION_SCHEMA,
   createOne,
   findOneById,
   pushCardOrderIds,
-  update
+  update,
+  deleteOneById
 }

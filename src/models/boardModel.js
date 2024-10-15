@@ -114,6 +114,30 @@ const pushColumnOrderIds = async (column) => {
   }
 }
 
+const pullColumnOrderIds = async (column) => {
+  try {
+    await GET_DB()
+      .collection(BOARD_COLLECTION_NAME)
+      .findOneAndUpdate(
+        {
+          _id: ObjectId.isValid(column.boardId)
+            ? column.boardId
+            : ObjectId.createFromHexString(column.boardId)
+        },
+        {
+          $pull: {
+            columnOrderIds: ObjectId.isValid(column._id)
+              ? column._id
+              : ObjectId.createFromHexString(column._id)
+          }
+        },
+        { ReturnDocument: 'after' }
+      )
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 const update = async (boardId, updateData) => {
   try {
     Object.keys(updateData).forEach((field) => {
@@ -151,5 +175,6 @@ export const boardModel = {
   findOneById,
   getDetails,
   pushColumnOrderIds,
-  update
+  update,
+  pullColumnOrderIds
 }
