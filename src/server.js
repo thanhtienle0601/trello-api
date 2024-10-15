@@ -26,12 +26,21 @@ const START_SERVER = () => {
   //Middleware error
   app.use(errorHandlingMiddleware)
 
-  app.listen(env.APP_PORT, env.APP_HOST, () => {
-    // eslint-disable-next-line no-console
-    console.log(
-      `3. Hi ${env.AUTHOR}. Server running is successfully at http://${env.APP_HOST}:${env.APP_PORT}/`
-    )
-  })
+  if (env.BUILD_MODE === 'production') {
+    app.listen(env.PORT, () => {
+      // eslint-disable-next-line no-console
+      console.log(
+        `3. Hi ${env.AUTHOR}. Server running is successfully at PORT: ${env.PORT}`
+      )
+    })
+  } else {
+    app.listen(env.APP_PORT, env.APP_HOST, () => {
+      // eslint-disable-next-line no-console
+      console.log(
+        `3. Hi ${env.AUTHOR}. Server running is successfully at http://${env.APP_HOST}:${env.APP_PORT}/`
+      )
+    })
+  }
 
   exitHook(() => {
     console.log('4. Disconnecting from MongoDB Cloud Atlas...')
@@ -52,12 +61,3 @@ const START_SERVER = () => {
     process.exit(0)
   }
 })()
-
-// console.log('1. Connecting to MongoDB Cloud Atlas...!')
-// CONNECT_DB()
-//   .then(() => console.log('2. Connected to MongoDb Atlas!'))
-//   .then(() => START_SERVER())
-//   .catch((error) => {
-//     console.error(error)
-//     process.exit(0)
-//   })
