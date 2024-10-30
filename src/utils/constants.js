@@ -1,3 +1,5 @@
+import { env } from '~/config/environment'
+
 /**
  * Updated by trungquandev.com's author on August 17 2023
  * YouTube: https://youtube.com/@trungquandev
@@ -12,3 +14,8 @@ export const BOARD_TYPES = {
   PUBLIC: 'public',
   PRIVATE: 'private'
 }
+
+export const WEBSITE_DOMAIN =
+  env.BUILD_MODE === 'prod'
+    ? env.WEBSITE_DOMAIN_PRODUCTION
+    : env.WEBSITE_DOMAIN_DEVELOPMENT
