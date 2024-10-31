@@ -6,18 +6,31 @@
 import express from 'express'
 import { StatusCodes } from 'http-status-codes'
 import { columnController } from '~/controllers/columnController'
+import { authMiddleware } from '~/middlewares/authMiddleware'
 import { columnValidation } from '~/validations/columnValidation'
 
 const Router = express.Router()
 
 Router.route('/')
-  .get((req, res) => {
+  .get(authMiddleware.isAuthorized, (req, res) => {
     res.status(StatusCodes.OK).json({ message: 'GET: API get list columns' })
   })
-  .post(columnValidation.createNew, columnController.createNew)
+  .post(
+    authMiddleware.isAuthorized,
+    columnValidation.createNew,
+    columnController.createNew
+  )
 
 Router.route('/:id')
-  .put(columnValidation.update, columnController.update)
-  .delete(columnValidation.deleteColumnById, columnController.deleteColumnById)
+  .put(
+    authMiddleware.isAuthorized,
+    columnValidation.update,
+    columnController.update
+  )
+  .delete(
+    authMiddleware.isAuthorized,
+    columnValidation.deleteColumnById,
+    columnController.deleteColumnById
+  )
 
 export const columnRoutes = Router
