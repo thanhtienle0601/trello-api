@@ -80,7 +80,7 @@ const update = async (userId, updateData) => {
       .collection(USER_COLLECTION_NAME)
       .findOneAndUpdate(
         {
-          _id: ObjectId.createFromHexString(userId)
+          _id: ObjectId.createFromHexString(userId.toString())
         },
         {
           $set: updateData
