@@ -1,6 +1,7 @@
 import { StatusCodes } from 'http-status-codes'
 import ms from 'ms'
 import { userService } from '~/services/userService'
+import ApiError from '~/utils/ApiError'
 
 const createNew = async (req, res, next) => {
   try {
@@ -62,8 +63,48 @@ const login = async (req, res, next) => {
   }
 }
 
+const logout = async (req, res, next) => {
+  try {
+    res.clearCookie('accessToken')
+    res.clearCookie('refreshToken')
+    res
+      .status(StatusCodes.OK)
+      .json({ loggedOut: true, message: 'Logged out successfully' })
+  } catch (error) {
+    next(error)
+  }
+}
+
+const refreshToken = async (req, res, next) => {
+  try {
+    const { refreshToken } = req.cookies
+
+    if (!refreshToken) {
+      return res
+        .status(StatusCodes.UNAUTHORIZED)
+        .json({ message: 'Unauthorized' })
+    }
+
+    const result = await userService.refreshToken(refreshToken)
+
+    // Xử lý trả về httpOnly cookies cho trình duyệt
+    res.cookie('accessToken', result.accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: ms('14 days')
+    })
+
+    res.status(StatusCodes.OK).json(result)
+  } catch (error) {
+    next(new ApiError(StatusCodes.FORBIDDEN, 'Please Sign In!'))
+  }
+}
+
 export const userController = {
   createNew,
   verifyAccount,
-  login
+  login,
+  logout,
+  refreshToken
 }
