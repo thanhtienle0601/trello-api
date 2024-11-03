@@ -109,7 +109,7 @@ const update = async (columnId, updateData) => {
         {
           $set: updateData
         },
-        { ReturnDocument: 'after' }
+        { returnDocument: 'after' }
       )
 
     return result

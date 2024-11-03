@@ -78,8 +78,36 @@ const login = async (req, res, next) => {
   }
 }
 
+const update = async (req, res, next) => {
+  const conditionTrue = Joi.object({
+    displayName: Joi.string().trim().strict(),
+    current_password: Joi.string()
+      .pattern(PASSWORD_RULE)
+      .message(`current_password ${PASSWORD_RULE_MESSAGE}`),
+    new_password: Joi.string()
+      .pattern(PASSWORD_RULE)
+      .message(`new_password ${PASSWORD_RULE_MESSAGE}`)
+  })
+
+  try {
+    await conditionTrue.validateAsync(req.body, {
+      abortEarly: false,
+      allowUnknown: true
+    })
+    next()
+  } catch (error) {
+    // res
+    //   .status(StatusCodes.UNPROCESSABLE_ENTITY)
+    //   .json({ errors: new Error(error).message })
+    next(
+      new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, new Error(error).message)
+    )
+  }
+}
+
 export const userValidation = {
   createNew,
   verifyAccount,
-  login
+  login,
+  update
 }

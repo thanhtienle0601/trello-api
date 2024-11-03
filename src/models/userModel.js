@@ -85,9 +85,8 @@ const update = async (userId, updateData) => {
         {
           $set: updateData
         },
-        { ReturnDocument: 'after' }
+        { returnDocument: 'after' }
       )
-
     return result
   } catch (error) {
     throw new Error(error)

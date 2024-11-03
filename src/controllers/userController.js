@@ -101,10 +101,28 @@ const refreshToken = async (req, res, next) => {
   }
 }
 
+const update = async (req, res, next) => {
+  try {
+    const userId = req.jwtDecoded._id
+    // console.log(req.body)
+
+    //navigate to service
+    const result = await userService.update(userId, req.body)
+    // console.log(result)
+    res.status(StatusCodes.OK).json(result)
+  } catch (error) {
+    next(error)
+    // res
+    //   .status(StatusCodes.INTERNAL_SERVER_ERROR)
+    //   .json({ errors: error.message })
+  }
+}
+
 export const userController = {
   createNew,
   verifyAccount,
   login,
   logout,
-  refreshToken
+  refreshToken,
+  update
 }
