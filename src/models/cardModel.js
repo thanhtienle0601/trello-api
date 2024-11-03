@@ -83,7 +83,7 @@ const update = async (cardId, updateData) => {
         {
           $set: updateData
         },
-        { ReturnDocument: 'after' }
+        { returnDocument: 'after' }
       )
 
     return result
