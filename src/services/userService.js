@@ -10,6 +10,7 @@ import { WEBSITE_DOMAIN } from '~/utils/constants'
 import { BrevoProvider } from '~/providers/BrevoProvider'
 import { JwtProvider } from '~/providers/JwtProvider'
 import { env } from '~/config/environment'
+import { CloudinaryProvider } from '~/providers/CloudinaryProvider'
 
 const createNew = async (reqBody) => {
   try {
@@ -147,7 +148,7 @@ const refreshToken = async (refreshToken) => {
   }
 }
 
-const update = async (userId, reqBody) => {
+const update = async (userId, reqBody, userAvatarFile) => {
   try {
     const existUser = await userModel.findOneById(userId)
     if (!existUser)
@@ -167,15 +168,27 @@ const update = async (userId, reqBody) => {
           'Current password is incorrect!'
         )
       }
-      await userModel.update(userId, {
+      updatedUser = await userModel.update(userId, {
         password: bcryptjs.hashSync(reqBody.new_password, 8)
+      })
+    } else if (userAvatarFile) {
+      // Update file to cloudinary
+      const uploadResult = await CloudinaryProvider.streamUpload(
+        userAvatarFile.buffer,
+        'users'
+      )
+      console.log('🚀 ~ update ~ uploadResult:', uploadResult)
+
+      // Save url of image file to database
+      updatedUser = await userModel.update(userId, {
+        avatar: uploadResult.secure_url
       })
     } else {
       // Update others fields
-      await userModel.update(userId, reqBody)
+      updatedUser = await userModel.update(userId, reqBody)
     }
     // Return updated user
-    updatedUser = await userModel.findOneById(userId)
+    // updatedUser = await userModel.findOneById(userId)
     // console.log(updatedUser)
     return pickUser(updatedUser)
   } catch (error) {
