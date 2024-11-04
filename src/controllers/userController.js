@@ -104,10 +104,11 @@ const refreshToken = async (req, res, next) => {
 const update = async (req, res, next) => {
   try {
     const userId = req.jwtDecoded._id
-    // console.log(req.body)
+    const userAvatarFile = req.file
+    console.log('🚀 ~ update ~ userAvatarFile:', userAvatarFile)
 
     //navigate to service
-    const result = await userService.update(userId, req.body)
+    const result = await userService.update(userId, req.body, userAvatarFile)
     // console.log(result)
     res.status(StatusCodes.OK).json(result)
   } catch (error) {
