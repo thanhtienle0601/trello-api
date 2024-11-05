@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-catch */
 import { slugify } from '~/utils/formatters'
 import { boardModel } from '~/models/boardModel'
 import ApiError from '~/utils/ApiError'
@@ -5,6 +6,7 @@ import { StatusCodes } from 'http-status-codes'
 import { cloneDeep } from 'lodash'
 import { columnModel } from '~/models/columnModel'
 import { cardModel } from '~/models/cardModel'
+import { DEFAULT_ITEM_PER_PAGE, DEFAULT_PAGE } from '~/utils/constants'
 
 /**
  * Updated by trungquandev.com's author on August 17 2023
@@ -84,9 +86,27 @@ const moveCardDifferenceColumns = async (reqBody) => {
   }
 }
 
+const getBoards = async (userId, page, itemsPerPage) => {
+  try {
+    if (!page) page = DEFAULT_PAGE
+    if (!itemsPerPage) itemsPerPage = DEFAULT_ITEM_PER_PAGE
+
+    const results = await boardModel.getBoards(
+      userId,
+      parseInt(page, 10),
+      parseInt(itemsPerPage, 10)
+    )
+
+    return results
+  } catch (error) {
+    throw error
+  }
+}
+
 export const boardService = {
   createNew,
   getDetails,
   update,
-  moveCardDifferenceColumns
+  moveCardDifferenceColumns,
+  getBoards
 }

@@ -4,6 +4,8 @@ import { BOARD_TYPES } from '~/utils/constants'
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
 import { columnModel } from './columnModel'
 import { cardModel } from './cardModel'
+import { pagingSkipValue } from '~/utils/algorithms'
+import { on } from 'nodemon'
 
 const Joi = require('joi')
 
@@ -19,6 +21,12 @@ const BOARD__COLLECTION_SCHEMA = Joi.object({
   description: Joi.string().required().min(3).max(250).trim().strict(),
   type: Joi.string().valid(BOARD_TYPES.PUBLIC, BOARD_TYPES.PRIVATE).required(),
   columnOrderIds: Joi.array()
+    .items(Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE))
+    .default([]),
+  ownerIds: Joi.array()
+    .items(Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE))
+    .default([]),
+  memberIds: Joi.array()
     .items(Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE))
     .default([]),
   createdAt: Joi.date().timestamp('javascript').default(Date.now),
@@ -167,6 +175,65 @@ const update = async (boardId, updateData) => {
     throw new Error(error)
   }
 }
+const getBoards = async (userId, page, itemsPerPage) => {
+  try {
+    const queryConditions = [
+      {
+        _destroy: false
+      },
+      {
+        $or: [
+          {
+            ownerIds: {
+              $all: [ObjectId.createFromHexString(userId)]
+            }
+          },
+          {
+            memberIds: {
+              $all: [ObjectId.createFromHexString(userId)]
+            }
+          }
+        ]
+      }
+    ]
+
+    const query = await GET_DB()
+      .collection(BOARD_COLLECTION_NAME)
+      .aggregate(
+        [
+          {
+            $match: {
+              $and: queryConditions
+            }
+          },
+          { $sort: { title: 1 } },
+          {
+            $facet: {
+              queryBoards: [
+                { $skip: pagingSkipValue(page, itemsPerPage) },
+                { $limit: itemsPerPage }
+              ],
+              queryTotalBoards: [
+                {
+                  $count: 'totalBoards'
+                }
+              ]
+            }
+          }
+        ],
+        { collation: { locale: 'en' } }
+      )
+      .toArray()
+    console.log('🚀 ~ getBoards ~ query:', query)
+    const result = query[0]
+    return {
+      boards: result.queryBoards || [],
+      totalBoards: result.queryTotalBoards[0]?.totalBoards || 0
+    }
+  } catch (error) {
+    throw new Error(error)
+  }
+}
 
 export const boardModel = {
   BOARD_COLLECTION_NAME,
@@ -176,5 +243,6 @@ export const boardModel = {
   getDetails,
   pushColumnOrderIds,
   update,
-  pullColumnOrderIds
+  pullColumnOrderIds,
+  getBoards
 }
