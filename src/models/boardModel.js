@@ -1,11 +1,10 @@
-import { ObjectId, ReturnDocument } from 'mongodb'
+import { ObjectId } from 'mongodb'
 import { GET_DB } from '~/config/mongodb'
 import { BOARD_TYPES } from '~/utils/constants'
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
 import { columnModel } from './columnModel'
 import { cardModel } from './cardModel'
 import { pagingSkipValue } from '~/utils/algorithms'
-import { on } from 'nodemon'
 
 const Joi = require('joi')
 
@@ -42,10 +41,16 @@ const validateData = async (data) => {
   })
 }
 
-const createOne = async (data) => {
+const createOne = async (userId, data) => {
   try {
     const validData = await validateData(data)
-    return await GET_DB().collection(BOARD_COLLECTION_NAME).insertOne(validData)
+    const newBoardToAdd = {
+      ...validData,
+      ownerIds: [ObjectId.createFromHexString(userId.toString())]
+    }
+    return await GET_DB()
+      .collection(BOARD_COLLECTION_NAME)
+      .insertOne(newBoardToAdd)
   } catch (error) {
     throw new Error(error)
   }
@@ -63,15 +68,34 @@ const findOneById = async (id) => {
   }
 }
 
-const getDetails = async (id) => {
+const getDetails = async (userId, boardId) => {
   try {
+    const queryConditions = [
+      { _id: ObjectId.createFromHexString(boardId.toString()) },
+      {
+        _destroy: false
+      },
+      {
+        $or: [
+          {
+            ownerIds: {
+              $all: [ObjectId.createFromHexString(userId.toString())]
+            }
+          },
+          {
+            memberIds: {
+              $all: [ObjectId.createFromHexString(userId.toString())]
+            }
+          }
+        ]
+      }
+    ]
     const result = await GET_DB()
       .collection(BOARD_COLLECTION_NAME)
       .aggregate([
         {
           $match: {
-            _id: ObjectId.createFromHexString(id),
-            _destroy: false
+            $and: queryConditions
           }
         },
         {
@@ -224,7 +248,6 @@ const getBoards = async (userId, page, itemsPerPage) => {
         { collation: { locale: 'en' } }
       )
       .toArray()
-    console.log('🚀 ~ getBoards ~ query:', query)
     const result = query[0]
     return {
       boards: result.queryBoards || [],
