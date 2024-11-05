@@ -13,23 +13,23 @@ import { DEFAULT_ITEM_PER_PAGE, DEFAULT_PAGE } from '~/utils/constants'
  * YouTube: https://youtube.com/@trungquandev
  * "A bit of fragrance clings to the hand that gives flowers!"
  */
-const createNew = async (reqBody) => {
+const createNew = async (userId, reqBody) => {
   // eslint-disable-next-line no-useless-catch
   try {
     const data = { ...reqBody, slug: slugify(reqBody.title) }
 
     return await boardModel.findOneById(
-      (await boardModel.createOne(data)).insertedId.toString()
+      (await boardModel.createOne(userId, data)).insertedId.toString()
     )
   } catch (error) {
     throw error
   }
 }
 
-const getDetails = async (boardId) => {
+const getDetails = async (userId, boardId) => {
   // eslint-disable-next-line no-useless-catch
   try {
-    const board = await boardModel.getDetails(boardId)
+    const board = await boardModel.getDetails(userId, boardId)
     if (!board) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Board not found !')
     }
