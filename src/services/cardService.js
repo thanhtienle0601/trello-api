@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-catch */
 import { ObjectId } from 'mongodb'
 import { cardModel } from '~/models/cardModel'
 import { columnModel } from '~/models/columnModel'
@@ -27,6 +28,21 @@ const createNew = async (reqBody) => {
   }
 }
 
+const update = async (cardId, reqBody) => {
+  try {
+    const updateDate = {
+      ...reqBody,
+      updatedAt: new Date()
+    }
+    const updatedCard = await cardModel.update(cardId, updateDate)
+
+    return updatedCard
+  } catch (error) {
+    throw error
+  }
+}
+
 export const cardService = {
-  createNew
+  createNew,
+  update
 }
