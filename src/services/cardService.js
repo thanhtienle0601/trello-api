@@ -2,6 +2,7 @@
 import { ObjectId } from 'mongodb'
 import { cardModel } from '~/models/cardModel'
 import { columnModel } from '~/models/columnModel'
+import { CloudinaryProvider } from '~/providers/CloudinaryProvider'
 
 /**
  * Updated by trungquandev.com's author on August 17 2023
@@ -28,13 +29,30 @@ const createNew = async (reqBody) => {
   }
 }
 
-const update = async (cardId, reqBody) => {
+const update = async (cardId, reqBody, cardCoverFile) => {
   try {
-    const updateDate = {
+    const updateData = {
       ...reqBody,
       updatedAt: new Date()
     }
-    const updatedCard = await cardModel.update(cardId, updateDate)
+
+    let updatedCard = {}
+
+    if (cardCoverFile) {
+      // Update file to cloudinary
+      const uploadResult = await CloudinaryProvider.streamUpload(
+        cardCoverFile.buffer,
+        'covers'
+      )
+      console.log('🚀 ~ update ~ uploadResult:', uploadResult)
+
+      // Save url of image file to database
+      updatedCard = await cardModel.update(cardId, {
+        cover: uploadResult.secure_url
+      })
+    } else {
+      updatedCard = await cardModel.update(cardId, updateData)
+    }
 
     return updatedCard
   } catch (error) {
