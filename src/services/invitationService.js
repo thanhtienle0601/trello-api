@@ -22,10 +22,12 @@ const createNewBoardInvitation = async (reqBody, invitingId) => {
       invitingId,
       invitedId: invitedUser._id.toString(),
       type: INVITATION_TYPES.BOARD_INVITATION,
-      boardInvitation: {
-        boardId: board._id.toString(),
-        status: BOARD_INVITATION_STATUS.PENDING
-      }
+      boardId: board._id.toString(),
+      status: BOARD_INVITATION_STATUS.PENDING
+      // boardInvitation: {
+      //   boardId: board._id.toString(),
+      //   status: BOARD_INVITATION_STATUS.PENDING
+      // }
     }
 
     const createdInvitation = await invitationModel.createNewBoardInvitation(
@@ -46,4 +48,22 @@ const createNewBoardInvitation = async (reqBody, invitingId) => {
   }
 }
 
-export const invitationService = { createNewBoardInvitation }
+const getInvitations = async (userId) => {
+  try {
+    const getInvitations = await invitationModel.findByUser(userId)
+    // console.log(getInvitations)
+
+    const resInvitations = getInvitations.map((i) => ({
+      ...i,
+      inviter: i.inviter[0] || {},
+      invitee: i.invitee[0] || {},
+      board: i.board[0] || {}
+    }))
+
+    return resInvitations
+  } catch (error) {
+    throw error
+  }
+}
+
+export const invitationService = { createNewBoardInvitation, getInvitations }
