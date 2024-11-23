@@ -20,14 +20,16 @@ const INVITATION_COLLECTION_SCHEMA = Joi.object({
   type: Joi.string()
     .required()
     .valid(...Object.values(INVITATION_TYPES)),
-  boardId: Joi.string()
-    .required()
-    .pattern(OBJECT_ID_RULE)
-    .message(OBJECT_ID_RULE_MESSAGE),
-  status: Joi.string()
-    .required()
-    .valid(...Object.values(BOARD_INVITATION_STATUS))
-    .optional(),
+  boardInvitation: Joi.object({
+    boardId: Joi.string()
+      .required()
+      .pattern(OBJECT_ID_RULE)
+      .message(OBJECT_ID_RULE_MESSAGE),
+    status: Joi.string()
+      .required()
+      .valid(...Object.values(BOARD_INVITATION_STATUS))
+      .optional()
+  }),
   createdAt: Joi.date().timestamp('javascript').default(Date.now()),
   updatedAt: Joi.date().timestamp('javascript').default(null),
   _destroy: Joi.boolean().default(false)
@@ -54,7 +56,10 @@ const createNewBoardInvitation = async (data) => {
       ...validData,
       invitingId: ObjectId.createFromHexString(validData.invitingId),
       invitedId: ObjectId.createFromHexString(validData.invitedId),
-      boardId: ObjectId.createFromHexString(validData.boardId)
+      boardInvitation: {
+        ...validData.boardInvitation,
+        boardId: ObjectId.createFromHexString(validData.boardInvitation.boardId)
+      }
     }
 
     const result = await GET_DB()
@@ -89,13 +94,15 @@ const update = async (id, data) => {
     if (data.boardInvitation) {
       data.boardInvitation = {
         ...data.boardInvitation,
-        boardId: ObjectId.createFromHexString(data.boardInvitation.boardId)
+        boardId: ObjectId.createFromHexString(
+          data.boardInvitation.boardId.toString()
+        )
       }
     }
 
     const result = await GET_DB()
       .collection(INVITATION_COLLECTION_NAME)
-      .updateOne(
+      .findOneAndUpdate(
         { _id: ObjectId.createFromHexString(id) },
         { $set: data },
         {
@@ -146,7 +153,7 @@ const findByUser = async (userId) => {
         {
           $lookup: {
             from: boardModel.BOARD_COLLECTION_NAME,
-            localField: 'boardId',
+            localField: 'boardInvitation.boardId',
             foreignField: '_id',
             as: 'board'
           }
