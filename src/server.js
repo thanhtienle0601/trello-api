@@ -15,6 +15,9 @@ import { APIs_V1 } from '~/routes/v1'
 import { errorHandlingMiddleware } from '~/middlewares/errorHandlingMiddleware'
 import { corsOptions } from './config/cors'
 import cookieParser from 'cookie-parser'
+import socketIo from 'socket.io'
+import http from 'http'
+import { inviteUserToBoardSocket } from './sockets/inviteUserToBoardSocket'
 
 const START_SERVER = () => {
   const app = express()
@@ -34,18 +37,27 @@ const START_SERVER = () => {
 
   app.use('/v1', APIs_V1)
 
-  //Middleware error
+  // Middleware error
   app.use(errorHandlingMiddleware)
 
+  //
+  const server = http.createServer(app)
+  // const server = createServer(app)
+  const io = socketIo(server, { cors: corsOptions })
+  io.on('connection', (socket) => {
+    // console.log('a user connected', socket.id)
+    inviteUserToBoardSocket(socket)
+  })
+
   if (env.BUILD_MODE === 'prod') {
-    app.listen(process.env.PORT, () => {
+    server.listen(process.env.PORT, () => {
       // eslint-disable-next-line no-console
       console.log(
         `3. Hi ${env.AUTHOR}. Server running is successfully at PORT: ${process.env.PORT}`
       )
     })
   } else {
-    app.listen(env.APP_PORT, env.APP_HOST, () => {
+    server.listen(env.APP_PORT, env.APP_HOST, () => {
       // eslint-disable-next-line no-console
       console.log(
         `3. Hi ${env.AUTHOR}. Server running is successfully at http://${env.APP_HOST}:${env.APP_PORT}/`

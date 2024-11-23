@@ -22,12 +22,12 @@ const createNewBoardInvitation = async (reqBody, invitingId) => {
       invitingId,
       invitedId: invitedUser._id.toString(),
       type: INVITATION_TYPES.BOARD_INVITATION,
-      boardId: board._id.toString(),
-      status: BOARD_INVITATION_STATUS.PENDING
-      // boardInvitation: {
-      //   boardId: board._id.toString(),
-      //   status: BOARD_INVITATION_STATUS.PENDING
-      // }
+      // boardId: board._id.toString(),
+      // status: BOARD_INVITATION_STATUS.PENDING
+      boardInvitation: {
+        boardId: board._id.toString(),
+        status: BOARD_INVITATION_STATUS.PENDING
+      }
     }
 
     const createdInvitation = await invitationModel.createNewBoardInvitation(
@@ -66,4 +66,63 @@ const getInvitations = async (userId) => {
   }
 }
 
-export const invitationService = { createNewBoardInvitation, getInvitations }
+const updateBoardInvitation = async (userId, invitationId, status) => {
+  try {
+    const getInvitation = await invitationModel.findOneById(invitationId)
+    if (!getInvitation) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'Invitation not found!')
+    }
+
+    const boardId = getInvitation.boardInvitation.boardId.toString()
+    const getBoard = await boardModel.findOneById(boardId)
+    if (!getBoard) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'Board not found!')
+    }
+
+    const boardOwnerAndMemberIds = [
+      ...getBoard.ownerIds,
+      ...getBoard.memberIds
+    ].toString()
+
+    if (
+      status === BOARD_INVITATION_STATUS.ACCEPTED &&
+      boardOwnerAndMemberIds.includes(userId)
+    ) {
+      throw new ApiError(
+        StatusCodes.NOT_ACCEPTABLE,
+        'You are already member of this board!'
+      )
+    }
+
+    const updateData = {
+      boardInvitation: {
+        ...getInvitation.boardInvitation,
+        status
+      }
+    }
+
+    const updatedInvitation = await invitationModel.update(
+      invitationId.toString(),
+      updateData
+    )
+    console.log(updateBoardInvitation)
+
+    if (
+      updatedInvitation.boardInvitation.status ===
+      BOARD_INVITATION_STATUS.ACCEPTED
+    ) {
+      const result = await boardModel.pushMemberIds(boardId, userId)
+      console.log(result)
+    }
+
+    return updatedInvitation
+  } catch (error) {
+    throw error
+  }
+}
+
+export const invitationService = {
+  createNewBoardInvitation,
+  getInvitations,
+  updateBoardInvitation
+}
