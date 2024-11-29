@@ -219,7 +219,7 @@ const update = async (boardId, updateData) => {
     throw new Error(error)
   }
 }
-const getBoards = async (userId, page, itemsPerPage) => {
+const getBoards = async (userId, page, itemsPerPage, queryFilters) => {
   try {
     const queryConditions = [
       {
@@ -241,6 +241,16 @@ const getBoards = async (userId, page, itemsPerPage) => {
       }
     ]
 
+    if (queryFilters) {
+      console.log(Object.keys(queryFilters))
+      Object.keys(queryFilters).forEach((key) => {
+        // queryConditions.push({ [key]: { $regex: queryFilters[key] } })
+        queryConditions.push({
+          [key]: { $regex: new RegExp(queryFilters[key], 'i') }
+        })
+      })
+    }
+    console.log(queryConditions)
     const query = await GET_DB()
       .collection(BOARD_COLLECTION_NAME)
       .aggregate(
